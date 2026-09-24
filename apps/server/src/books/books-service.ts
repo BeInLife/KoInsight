@@ -1,5 +1,5 @@
 import { Book, BookDevice, BookWithData, PageStat } from '@koinsight/common/types';
-import { normalizeRanges, Range, totalRangeLength } from '@koinsight/common/utils/ranges';
+import { normalizeRanges, Range, totalRangeLength } from '../utils/ranges';
 import { startOfDay } from 'date-fns';
 import { AnnotationsRepository } from '../annotations/annotations-repository';
 import { GenreRepository } from '../genres/genre-repository';
