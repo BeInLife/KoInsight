@@ -20,6 +20,7 @@ import {
   IconClockHour4,
   IconFile,
   IconHighlight,
+  IconNotes,
   IconRefresh,
   IconSettings,
   IconTable,
@@ -27,6 +28,7 @@ import {
 import { sum } from 'ramda';
 import { JSX, useState } from 'react';
 import { useParams } from 'react-router';
+import { useBookNotes } from '../../api/book-notes';
 import { useBookWithData } from '../../api/use-book-with-data';
 import { getLatestReadPage } from '../../utils/book-progress';
 import { formatSecondsToHumanReadable } from '../../utils/dates';
@@ -34,11 +36,13 @@ import { BookCard } from './book-card';
 import { BookPageAnnotations } from './book-page-annotations';
 import { BookPageCalendar } from './book-page-calendar';
 import { BookPageManage } from './book-page-manage/book-page-manage';
+import { BookPageNotes } from './book-page-notes';
 import { BookPageRaw } from './book-page-raw';
 
 export function BookPage(): JSX.Element {
   const { id } = useParams() as { id: string };
   const { data: book, isLoading, mutate } = useBookWithData(Number(id));
+  const { data: notes } = useBookNotes(Number(id));
 
   const [tabValue, setTabValue] = useState<string | null>('calendar');
 
@@ -77,6 +81,16 @@ export function BookPage(): JSX.Element {
                 {book.annotations.length > 0 && (
                   <Badge color="gray" size="xs">
                     {book.annotations.length}
+                  </Badge>
+                )}
+              </Flex>
+            </Tabs.Tab>
+            <Tabs.Tab value="notes" leftSection={<IconNotes size={16} />}>
+              <Flex align="center" gap="xs">
+                Notes{' '}
+                {notes.length > 0 && (
+                  <Badge color="gray" size="xs">
+                    {notes.length}
                   </Badge>
                 )}
               </Flex>
@@ -133,6 +147,12 @@ export function BookPage(): JSX.Element {
         <Tabs.Panel value="annotations">
           <Box py={20}>
             <BookPageAnnotations book={book} />
+          </Box>
+        </Tabs.Panel>
+
+        <Tabs.Panel value="notes">
+          <Box py={20}>
+            <BookPageNotes book={book} />
           </Box>
         </Tabs.Panel>
 

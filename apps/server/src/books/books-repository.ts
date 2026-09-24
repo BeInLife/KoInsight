@@ -36,6 +36,8 @@ export class BooksRepository {
 
       await trx<BookGenre>('book_genre').where({ book_md5: book.md5 }).delete();
 
+      await trx('book_note').where({ book_md5: book.md5 }).delete();
+
       await trx<Book>('book').where({ id: book.id }).delete();
     });
   }

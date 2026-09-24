@@ -3,6 +3,7 @@ export * from './book-device';
 export * from './book';
 export * from './books-api';
 export * from './book-genre';
+export * from './book-note';
 export * from './device';
 export * from './genre';
 export * from './openai';

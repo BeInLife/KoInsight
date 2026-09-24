@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response, Router } from 'express';
+import { bookNotesRouter } from '../book-notes/book-notes-router';
 import { BooksRepository } from './books-repository';
 import { BooksService } from './books-service';
 import { coversRouter } from './covers/covers-router';
@@ -7,6 +8,7 @@ import { getBookById } from './get-book-by-id-middleware';
 const router = Router();
 
 router.use('/:bookId/cover', coversRouter);
+router.use('/:bookId/notes', bookNotesRouter);
 
 /**
  * Get all books with attached entity data
