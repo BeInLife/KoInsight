@@ -18,6 +18,11 @@ export const appConfig = {
     password: process.env.AUTH_PASSWORD,
   },
 
+  coverLookup: {
+    enabled: process.env.COVER_LOOKUP !== 'false' && process.env.NODE_ENV !== 'test',
+    googleBooksApiKey: process.env.GOOGLE_BOOKS_API_KEY,
+  },
+
   kosync: {
     registrationEnabled: process.env.KOSYNC_DISABLE_REGISTRATION !== 'true',
   },

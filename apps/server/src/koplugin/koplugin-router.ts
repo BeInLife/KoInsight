@@ -5,6 +5,7 @@ import { PageStat } from '@koinsight/common/types/page-stat';
 import archiver from 'archiver';
 import { NextFunction, Request, Response, Router } from 'express';
 import path from 'path';
+import { CoverLookupService } from '../books/covers/cover-lookup-service';
 import { DeviceRepository } from '../devices/device-repository';
 import { UploadService } from '../upload/upload-service';
 
@@ -65,6 +66,7 @@ router.post('/import', rejectOldPluginVersion, async (req, res) => {
     );
 
     await UploadService.uploadStatisticData(koreaderBooks, newPageStats, annotations, deviceId);
+    CoverLookupService.lookupMissing();
     res.status(200).json({ message: 'Upload successful' });
   } catch (err) {
     console.error(err);

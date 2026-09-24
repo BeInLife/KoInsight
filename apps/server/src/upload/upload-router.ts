@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { unlinkSync } from 'fs';
 import multer from 'multer';
+import { CoverLookupService } from '../books/covers/cover-lookup-service';
 import { appConfig } from '../config';
 import { UploadService } from './upload-service';
 
@@ -48,6 +49,7 @@ router.post('/', upload.single('file'), async (req, res, next) => {
   try {
     const { newBooks, newPageStats } = UploadService.extractDataFromStatisticsDb(db);
     await UploadService.uploadStatisticData(newBooks, newPageStats);
+    CoverLookupService.lookupMissing();
 
     res.status(200).json({ message: 'Database imported successfully' });
   } catch (err) {

@@ -5,6 +5,7 @@ import morgan from 'morgan';
 import path from 'path';
 import { openAiRouter } from './ai/open-ai-router';
 import { basicAuth } from './auth/basic-auth-middleware';
+import { CoverLookupService } from './books/covers/cover-lookup-service';
 import { booksRouter } from './books/books-router';
 import { appConfig } from './config';
 import { devicesRouter } from './devices/devices-router';
@@ -66,6 +67,7 @@ async function main() {
   console.log('Database migrated successfully');
 
   setupServer().then((server) => {
+    CoverLookupService.lookupMissing();
     process.on('SIGINT', (signal) => stopServer(signal, server));
     process.on('SIGTERM', (signal) => stopServer(signal, server));
   });

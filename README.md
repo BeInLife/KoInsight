@@ -88,6 +88,12 @@ KoInsight can be configured using the following environment variables:
   *Default:* unset (no authentication)
 - `KOSYNC_DISABLE_REGISTRATION`: Set to `true` to stop new KoSync users from registering.<br>
   *Default:* `false`
+- `COVER_LOOKUP`: Automatically find covers for books without one. A cover is only saved when a search
+  result's title and authors exactly match the book (ignoring case, accents and punctuation), so it may be a
+  different edition. Set to `false` to disable.<br>
+  *Default:* `true`
+- `GOOGLE_BOOKS_API_KEY`: Optional. Also search Google Books when Open Library has no exact match.<br>
+  *Default:* unset
 - `DATA_PATH`: Path to the directory where KoInsight data (such as stats or uploads) will be stored.<br>
   *Default:* `../../../data` or `/app/data` in Docker.
 
