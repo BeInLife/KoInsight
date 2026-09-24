@@ -1,9 +1,11 @@
 name: Release
 
 # Builds and publishes the multi-arch Docker image to GHCR whenever a version
-# tag (e.g. v0.2.3) is pushed.
+# tag (e.g. v0.2.3) is pushed, and an amd64 `latest` image on every push to master.
 on:
   push:
+    branches:
+      - master
     tags:
       - 'v*'
 
@@ -35,11 +37,13 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/ko-insight/koinsight
+          images: ghcr.io/${{ github.repository }}
           # Publish v0.2.3, 0.2.3, and (for non-prerelease tags) latest.
           tags: |
             type=semver,pattern=v{{version}}
             type=semver,pattern={{version}}
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=sha
           flavor: |
             latest=auto
 
@@ -47,7 +51,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          platforms: linux/amd64,linux/arm64
+          platforms: ${{ startsWith(github.ref, 'refs/tags/') && 'linux/amd64,linux/arm64' || 'linux/amd64' }}
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

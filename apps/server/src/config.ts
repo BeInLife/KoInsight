@@ -13,6 +13,15 @@ export const appConfig = {
   port: Number(process.env.PORT ?? 3000),
   env: process.env.NODE_ENV,
 
+  auth: {
+    username: process.env.AUTH_USERNAME,
+    password: process.env.AUTH_PASSWORD,
+  },
+
+  kosync: {
+    registrationEnabled: process.env.KOSYNC_DISABLE_REGISTRATION !== 'true',
+  },
+
   coversPath: path.resolve(DATA_PATH, 'covers'),
 
   dataPath: DATA_PATH,

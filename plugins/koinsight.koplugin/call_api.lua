@@ -5,8 +5,27 @@ local socket = require("socket")
 local http = require("socket.http")
 local UIManager = require("ui/uimanager")
 local JSON = require("json")
+local mime = require("mime")
 local InfoMessage = require("ui/widget/infomessage")
 local _ = require("gettext")
+
+-- Moves credentials out of a URL like https://user:pass@host into a basic auth header
+local function extract_basic_auth(url, headers)
+  local scheme, userinfo, rest = url:match("^(https?://)([^/@]+)@(.*)$")
+  if not userinfo then
+    return url
+  end
+
+  local user, password = userinfo:match("^([^:]*):(.*)$")
+  if user and password then
+    password = password:gsub("%%(%x%x)", function(hex)
+      return string.char(tonumber(hex, 16))
+    end)
+    headers["Authorization"] = "Basic " .. mime.b64(user .. ":" .. password)
+  end
+
+  return scheme .. rest
+end
 
 function response_not_valid(content)
   logger.err("[KoInsight] callApi: response was not valid JSON", content)
@@ -23,8 +42,8 @@ return function(method, url, headers, body, filepath, quiet)
     method = method,
   }
 
-  request.url = url
   request.headers = headers or {}
+  request.url = extract_basic_auth(url, request.headers)
 
   request.sink = ltn12.sink.table(sink)
   socketutil:set_timeout(socketutil.LARGE_BLOCK_TIMEOUT, socketutil.LARGE_TOTAL_TIMEOUT)

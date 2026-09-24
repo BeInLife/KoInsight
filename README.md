@@ -82,6 +82,12 @@ KoInsight can be configured using the following environment variables:
   *Default:* `3000`
 - `MAX_FILE_SIZE_MB`: Maximum allowed size (in megabytes) for uploaded files.<br>
   *Default:* `100`
+- `AUTH_USERNAME` / `AUTH_PASSWORD`: When both are set, the web dashboard and API are protected with HTTP basic auth.
+  KoSync progress sync endpoints are left to their own authentication. In the KOReader plugin, include the
+  credentials in the server URL: `https://username:password@example.com` (URL-encode special characters in the password).<br>
+  *Default:* unset (no authentication)
+- `KOSYNC_DISABLE_REGISTRATION`: Set to `true` to stop new KoSync users from registering.<br>
+  *Default:* `false`
 - `DATA_PATH`: Path to the directory where KoInsight data (such as stats or uploads) will be stored.<br>
   *Default:* `../../../data` or `/app/data` in Docker.
 

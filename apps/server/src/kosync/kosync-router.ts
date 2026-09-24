@@ -1,5 +1,6 @@
 import { Progress } from '@koinsight/common/types/progress';
 import { Request, Response, Router } from 'express';
+import { appConfig } from '../config';
 import { authenticate } from './kosync-authenticate-middleware';
 import { KosyncRepository } from './kosync-repository';
 import { UserExistsError, UserRepository } from './user-repository';
@@ -21,6 +22,11 @@ const router = Router();
  * "expected_status" : [201, 402]
  */
 router.post('/users/create', async (req: Request, res: Response) => {
+  if (!appConfig.kosync.registrationEnabled) {
+    res.status(403).json({ error: 'Registration is disabled' });
+    return;
+  }
+
   const { username, password } = req.body;
 
   if (!username || !password) {

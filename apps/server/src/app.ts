@@ -4,6 +4,7 @@ import { Server } from 'http';
 import morgan from 'morgan';
 import path from 'path';
 import { openAiRouter } from './ai/open-ai-router';
+import { basicAuth } from './auth/basic-auth-middleware';
 import { booksRouter } from './books/books-router';
 import { appConfig } from './config';
 import { devicesRouter } from './devices/devices-router';
@@ -25,6 +26,8 @@ async function setupServer() {
   // Allow requests from dev build
   app.use(cors({ origin: '*' }));
   // }
+
+  app.use(basicAuth(appConfig.auth));
 
   app.use('/', kosyncRouter); // Needs to be mounted at root to follow KoSync API
   app.use('/api/plugin', kopluginRouter);
