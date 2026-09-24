@@ -12,17 +12,60 @@ describe('CoverLookupService.findCover', () => {
     vi.unstubAllGlobals();
   });
 
-  it('returns the Open Library cover of the first exact match', async () => {
+  it('returns the LitRes cover of an exact match, ignoring translators', async () => {
     const fetchMock = vi.fn().mockResolvedValue(
       jsonResponse({
-        docs: [
-          { title: 'Dune Messiah', author_name: ['Frank Herbert'], cover_i: 1 },
-          { title: 'Dune', author_name: ['Frank Herbert'] }, // no cover
-          { title: 'Dune', author_name: ['Brian Herbert'], cover_i: 2 },
-          { title: 'Dune', author_name: ['Frank Herbert'], cover_i: 3 },
-        ],
+        payload: {
+          data: [
+            {
+              instance: {
+                title: 'Верьте мне – я лгу!',
+                cover_url: '/pub/c/cover/1.jpg',
+                persons: [{ full_name: 'Кирилл Савельев', role: 'translator' }],
+              },
+            },
+            {
+              instance: {
+                title: 'Верьте мне – я лгу!',
+                cover_url: '/pub/c/cover/2.jpg',
+                persons: [
+                  { full_name: 'Райан Холидей', role: 'author' },
+                  { full_name: 'Кирилл Савельев', role: 'translator' },
+                ],
+              },
+            },
+          ],
+        },
       })
     );
+    vi.stubGlobal('fetch', fetchMock);
+
+    const cover = await CoverLookupService.findCover(
+      { ...book, title: 'Верьте мне – я лгу!', authors: 'Райан Холидей' },
+      undefined
+    );
+
+    expect(cover).toEqual({
+      source: 'LitRes',
+      imageUrl: 'https://cdn.litres.ru/pub/c/cover_415/2.jpg',
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('returns the Open Library cover of the first exact match', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(jsonResponse({ payload: { data: [] } }))
+      .mockResolvedValueOnce(
+        jsonResponse({
+          docs: [
+            { title: 'Dune Messiah', author_name: ['Frank Herbert'], cover_i: 1 },
+            { title: 'Dune', author_name: ['Frank Herbert'] }, // no cover
+            { title: 'Dune', author_name: ['Brian Herbert'], cover_i: 2 },
+            { title: 'Dune', author_name: ['Frank Herbert'], cover_i: 3 },
+          ],
+        })
+      );
     vi.stubGlobal('fetch', fetchMock);
 
     const cover = await CoverLookupService.findCover(book, undefined);
@@ -31,24 +74,27 @@ describe('CoverLookupService.findCover', () => {
       source: 'Open Library',
       imageUrl: 'https://covers.openlibrary.org/b/id/3-L.jpg?default=false',
     });
-    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock).toHaveBeenCalledTimes(2); // LitRes, then Open Library
   });
 
   it('matches Open Library alternative author names', async () => {
     vi.stubGlobal(
       'fetch',
-      vi.fn().mockResolvedValue(
-        jsonResponse({
-          docs: [
-            {
-              title: 'Мастер и Маргарита',
-              author_name: ['Михаил Афанасьевич Булгаков'],
-              author_alternative_name: ['Михаил Булгаков'],
-              cover_i: 7,
-            },
-          ],
-        })
-      )
+      vi
+        .fn()
+        .mockResolvedValueOnce(jsonResponse({ payload: { data: [] } }))
+        .mockResolvedValueOnce(
+          jsonResponse({
+            docs: [
+              {
+                title: 'Мастер и Маргарита',
+                author_name: ['Михаил Афанасьевич Булгаков'],
+                author_alternative_name: ['Михаил Булгаков'],
+                cover_i: 7,
+              },
+            ],
+          })
+        )
     );
 
     const cover = await CoverLookupService.findCover(
@@ -62,6 +108,7 @@ describe('CoverLookupService.findCover', () => {
   it('falls back to Google Books when configured', async () => {
     const fetchMock = vi
       .fn()
+      .mockResolvedValueOnce(jsonResponse({ payload: { data: [] } }))
       .mockResolvedValueOnce(jsonResponse({ docs: [] }))
       .mockResolvedValueOnce(
         jsonResponse({

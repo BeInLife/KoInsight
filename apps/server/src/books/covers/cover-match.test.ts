@@ -40,9 +40,9 @@ describe('cover-match', () => {
         authors: ['Neil Gaiman', 'Terry Pratchett', 'Some Translator'],
       })
     ).toBe(true);
-    expect(
-      isExactMatch(twoAuthors, { titles: ['Good Omens'], authors: ['Terry Pratchett'] })
-    ).toBe(false);
+    expect(isExactMatch(twoAuthors, { titles: ['Good Omens'], authors: ['Terry Pratchett'] })).toBe(
+      false
+    );
   });
 
   it('matches any of the candidate titles, e.g. title with subtitle', () => {

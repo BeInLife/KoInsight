@@ -24,6 +24,47 @@ async function getJson<T>(url: string): Promise<T> {
   return response.json() as Promise<T>;
 }
 
+type LitresBook = {
+  title?: string;
+  subtitle?: string;
+  cover_url?: string;
+  persons?: { full_name?: string; role?: string }[];
+};
+
+// Uses the (undocumented) search API of the LitRes website. Good coverage of Russian books,
+// and reachable from Russia, unlike most other Russian-language catalogs.
+async function findOnLitres(book: Book): Promise<CoverCandidate | null> {
+  const params = new URLSearchParams({
+    q: `${book.title} ${splitAuthors(book.authors)[0]}`,
+    types: 'text_book',
+    limit: '20',
+  });
+  const result = await getJson<{ payload?: { data?: { instance?: LitresBook }[] } }>(
+    `https://api.litres.ru/foundation/api/search?${params}`
+  );
+
+  const match = (result.payload?.data ?? [])
+    .map((item) => item.instance)
+    .find(
+      (instance) =>
+        instance?.cover_url &&
+        instance.title &&
+        isExactMatch(book, {
+          titles: [
+            instance.title,
+            instance.subtitle ? `${instance.title}: ${instance.subtitle}` : '',
+          ],
+          authors: (instance.persons ?? [])
+            .filter((person) => person.role === 'author' && person.full_name)
+            .map((person) => person.full_name!),
+        })
+    );
+
+  // cover_url is like /pub/c/cover/123.jpg (full size, ~500KB); cover_415 is 415px wide
+  const imagePath = match?.cover_url?.replace('/pub/c/cover/', '/pub/c/cover_415/');
+  return imagePath ? { source: 'LitRes', imageUrl: `https://cdn.litres.ru${imagePath}` } : null;
+}
+
 type OpenLibraryDoc = {
   title?: string;
   subtitle?: string;
@@ -109,8 +150,7 @@ async function findOnGoogleBooks(book: Book, apiKey: string): Promise<CoverCandi
     `https://www.googleapis.com/books/v1/volumes/${match.id}?key=${encodeURIComponent(apiKey)}`
   ).catch(() => match);
   const imageUrl =
-    bestGoogleImage(volume.volumeInfo?.imageLinks) ??
-    bestGoogleImage(match.volumeInfo?.imageLinks);
+    bestGoogleImage(volume.volumeInfo?.imageLinks) ?? bestGoogleImage(match.volumeInfo?.imageLinks);
 
   return imageUrl ? { source: 'Google Books', imageUrl } : null;
 }
@@ -151,7 +191,7 @@ export class CoverLookupService {
       return null;
     }
 
-    const sources = [() => findOnOpenLibrary(book)];
+    const sources = [() => findOnLitres(book), () => findOnOpenLibrary(book)];
     if (googleBooksApiKey) {
       sources.push(() => findOnGoogleBooks(book, googleBooksApiKey));
     }
